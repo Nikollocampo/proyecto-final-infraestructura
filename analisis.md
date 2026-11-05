@@ -9,11 +9,11 @@ Como equipo de infraestructura TI, se propone el diseño e implementación de un
 
 ## 2. Justificación de los Servicios Implementados
 
-### A. Servicio NTP (Network Time Protocol)
+### A. Servicio NTP 
 *   **Necesidad:** En el sector salud, el registro exacto de la hora es vital. Las historias clínicas, la administración de medicamentos, los resultados de laboratorio y los logs de auditoría deben estar perfectamente sincronizados.
 *   **Justificación:** Implementar un servidor NTP local garantiza que todos los equipos del hospital (computadores de escritorio, servidores y equipos médicos) tengan la misma hora exacta, incluso si la conexión a internet falla. Esto evita errores en los registros cronológicos y cumple con las normativas de trazabilidad en salud.
 
-### B. Servicio CUPS (Common UNIX Printing System)
+### B. Servicio CUPS 
 *   **Necesidad:** El hospital maneja una gran cantidad de documentación física diaria (fórmulas médicas, resultados de exámenes, facturación, admisiones).
 *   **Justificación:** Centralizar la impresión mediante CUPS permite que cualquier equipo autorizado en la red del hospital pueda enviar documentos a una cola de impresión compartida. Esto reduce costos (al no necesitar una impresora por cada computador), facilita el mantenimiento y permite a los administradores gestionar los trabajos de impresión de forma remota a través de una interfaz web segura.
 
