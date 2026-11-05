@@ -3,17 +3,17 @@
 ## 1. Contexto de la Organización
 El Hospital San Juan de Dios de Armenia es una institución prestadora de servicios de salud que maneja información crítica de pacientes, historias clínicas y procesos administrativos. Para garantizar la operación eficiente y segura, requiere una infraestructura de TI centralizada que permita a sus equipos (médicos, laboratorio, enfermería y administración) trabajar de forma sincronizada y compartir recursos.
 
-Como equipo de infraestructura TI, se propone el diseño e implementación de un ecosistema de servicios centralizados alojados en un servidor Linux (Ubuntu Server). Para cubrir todas las necesidades operativas del hospital, la solución integral incluye la plataforma PaaS (Dokploy) con el servicio Web, el servicio de autenticación centralizada (NIS), la compartición de archivos para Linux (NFS) y para Windows/Mac (Samba), la gestión de bases de datos, y los servicios de infraestructura base.
+Como equipo de infraestructura TI, se propone el diseño e implementación de un ecosistema de servicios centralizados alojados en un servidor Linux (Ubuntu Server). Para cubrir todas las necesidades operativas del hospital, la solución integral incluye la plataforma PaaS (Dokploy) con el servicio Web, el servicio de autenticación centralizada (NIS), la compartición de archivos para Linux (NFS) y para Windows/Mac (Samba), la gestión de bases de datos, el servicio de sincronización de tiempo (NTP), el servidor de impresión centralizada (CUPS) y los servicios de infraestructura base.
 
 ---
 
 ## 2. Justificación de los Servicios Implementados
 
-### A. Servicio NTP (Network Time Protocol)
+### A. Servicio NTP 
 *   **Necesidad:** En el sector salud, el registro exacto de la hora es vital. Las historias clínicas, la administración de medicamentos, los resultados de laboratorio y los logs de auditoría deben estar perfectamente sincronizados.
 *   **Justificación:** Implementar un servidor NTP local garantiza que todos los equipos del hospital (computadores de escritorio, servidores y equipos médicos) tengan la misma hora exacta, incluso si la conexión a internet falla. Esto evita errores en los registros cronológicos y cumple con las normativas de trazabilidad en salud.
 
-### B. Servicio CUPS (Common UNIX Printing System)
+### B. Servicio CUPS 
 *   **Necesidad:** El hospital maneja una gran cantidad de documentación física diaria (fórmulas médicas, resultados de exámenes, facturación, admisiones).
 *   **Justificación:** Centralizar la impresión mediante CUPS permite que cualquier equipo autorizado en la red del hospital pueda enviar documentos a una cola de impresión compartida. Esto reduce costos (al no necesitar una impresora por cada computador), facilita el mantenimiento y permite a los administradores gestionar los trabajos de impresión de forma remota a través de una interfaz web segura.
 
