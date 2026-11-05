@@ -1,0 +1,37 @@
+# Análisis de Necesidades y Diseño - Hospital San Juan de Dios de Armenia
+
+## 1. Contexto de la Organización
+El Hospital San Juan de Dios de Armenia es una institución prestadora de servicios de salud que maneja información crítica de pacientes, historias clínicas y procesos administrativos. Para garantizar la operación eficiente y segura, requiere una infraestructura de TI centralizada que permita a sus equipos (médicos, laboratorio, enfermería y administración) trabajar de forma sincronizada y compartir recursos.
+
+Como equipo de infraestructura TI, se propone la implementación de un servidor Linux (Ubuntu Server) que alojará servicios tradicionales esenciales para el hospital. En esta entrega, se detalla la justificación e implementación de los servicios de **Sincronización de Tiempo (NTP)** y **Servidor de Impresión (CUPS)**.
+
+---
+
+## 2. Justificación de los Servicios Implementados
+
+### A. Servicio NTP (Network Time Protocol)
+*   **Necesidad:** En el sector salud, el registro exacto de la hora es vital. Las historias clínicas, la administración de medicamentos, los resultados de laboratorio y los logs de auditoría deben estar perfectamente sincronizados.
+*   **Justificación:** Implementar un servidor NTP local garantiza que todos los equipos del hospital (computadores de escritorio, servidores y equipos médicos) tengan la misma hora exacta, incluso si la conexión a internet falla. Esto evita errores en los registros cronológicos y cumple con las normativas de trazabilidad en salud.
+
+### B. Servicio CUPS (Common UNIX Printing System)
+*   **Necesidad:** El hospital maneja una gran cantidad de documentación física diaria (fórmulas médicas, resultados de exámenes, facturación, admisiones).
+*   **Justificación:** Centralizar la impresión mediante CUPS permite que cualquier equipo autorizado en la red del hospital pueda enviar documentos a una cola de impresión compartida. Esto reduce costos (al no necesitar una impresora por cada computador), facilita el mantenimiento y permite a los administradores gestionar los trabajos de impresión de forma remota a través de una interfaz web segura.
+
+---
+
+## 3. Tabla de Requisitos de Infraestructura
+
+A continuación, se detallan los parámetros técnicos para los servicios implementados en el servidor Linux:
+
+| Servicio | IP del Servidor | Puerto | Protocolo | Tipo de Servicio | Descripción / Acceso |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **NTP (chrony)** | 192.168.1.9 | 123 | UDP | Sincronización de tiempo | Servidor maestro de hora para la red local. |
+| **CUPS** | 192.168.1.9 | 631 | TCP | Servidor de Impresión | Administración web vía `https://192.168.1.9:631` y cola compartida. |
+
+---
+
+## 4. Diseño de la Arquitectura
+El servidor Linux se despliega en una máquina virtual con Ubuntu Server 24.04 LTS, configurada en modo **Adaptador Puente** para tener visibilidad directa en la red local del hospital (IP 192.168.1.9). 
+*   El servicio NTP se configura con la directiva `allow` para servir la hora a la subred `192.168.1.0/24`.
+*   El servicio CUPS se configura escuchando en `0.0.0.0:631` y con reglas de acceso `Allow 192.168.1.*` para permitir la administración desde los equipos de los funcionarios.
+*   *(El diagrama visual de esta arquitectura se encuentra en el archivo `diagrama.mmd`)*.
