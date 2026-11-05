@@ -3,7 +3,7 @@
 ## 1. Contexto de la Organización
 El Hospital San Juan de Dios de Armenia es una institución prestadora de servicios de salud que maneja información crítica de pacientes, historias clínicas y procesos administrativos. Para garantizar la operación eficiente y segura, requiere una infraestructura de TI centralizada que permita a sus equipos (médicos, laboratorio, enfermería y administración) trabajar de forma sincronizada y compartir recursos.
 
-Como equipo de infraestructura TI, se propone el diseño e implementación de un ecosistema de servicios centralizados alojados en un servidor Linux (Ubuntu Server). Para cubrir todas las necesidades operativas del hospital, la solución integral incluye la plataforma PaaS (Dokploy) con el servicio Web, el servicio de autenticación centralizada (NIS), la compartición de archivos para Linux (NFS) y para Windows/Mac (Samba), la gestión de bases de datos, y los servicios de infraestructura base.
+Como equipo de infraestructura TI, se propone el diseño e implementación de un ecosistema de servicios centralizados alojados en un servidor Linux (Ubuntu Server). Para cubrir todas las necesidades operativas del hospital, la solución integral incluye la plataforma PaaS (Dokploy) con el servicio Web, el servicio de autenticación centralizada (NIS), la compartición de archivos para Linux (NFS) y para Windows/Mac (Samba), la gestión de bases de datos, el servicio de sincronización de tiempo (NTP), el servidor de impresión centralizada (CUPS) y los servicios de infraestructura base.
 
 ---
 
