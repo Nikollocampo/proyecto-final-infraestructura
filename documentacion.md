@@ -135,6 +135,130 @@ Como resultado, se configuró una impresora denominada `Impresora_Hospital` dent
 
 ---
 
+### C. Servicio NIS
+
+**Objetivo:** Centralizar la administración de usuarios y grupos de la red del hospital, permitiendo que diferentes equipos consulten una misma fuente de información para identificar y autenticar a los usuarios.
+
+#### 2.8. Creación y Preparación de las instancias
+
+Se crearon dos instancias de Ubuntu mediante Multipass, utilizando una para funcionar como servidor maestro NIS y otra como cliente.
+
+![Crear el servidor NIS y Cliente NIS](capturas/nis/01.%20Crear%20el%20servidor%20NIS%20y%20Cliente%20NIS.png)
+
+Se identificaron las máquinas virtuales y se verificó que ambas estuvieran en funcionamiento antes de iniciar la configuración del servicio.
+
+![Verificación de ambas instancias](capturas/nis/02.%20Verificaci%C3%B3n%20de%20ambas%20instancias.png)
+
+#### 2.9. Actualización e Instalación de los Paquetes
+
+Primero se actualizaron los repositorios y paquetes del servidor para preparar el entorno de instalación
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+![Actualización de Ubuntu para el servidor NIS](capturas/nis/03.%20Actualizaci%C3%B3n%20de%20Ubuntu%20para%20el%20servidor%20NIS.png)
+
+Posteriormente se instalaron los paquetes necesarios para proporcional el servicio NIS
+
+```bash
+sudo apt install ypserv yp-tools rpcbind -y
+```
+![Instalación de los paquetes necesarios](capturas/nis/04.%20Instalaci%C3%B3n%20de%20los%20paquetes%20necesarios.png)
+
+#### 2.10. Definición del Dominio NIS
+
+Se estableció el dominio hospital.local, que identifica el entorno NIS al que pertenecerán el servidor y sus clientes
+
+```bash
+sudo domainname hospital.local
+```
+![Definición del dominio](capturas/nis/05.%20Definici%C3%B3n%20del%20dominio.png)
+
+#### 2.11. Configuración de las Direcciones IP
+
+Se asignaron direcciones IP a las dos máquinas virtuales para garantizar su comunicación dentro de la red local.
+
+![Configuración de las direcciones IP para cada instancia](capturas/nis/06.%20Configuraci%C3%B3n%20de%20las%20direcciones%20IP%20para%20cada%20instancia.png)
+
+Se verificaron las direcciones asignadas:
+
+![Verificación de las direcciones IP](capturas/nis/07.%20Verificaci%C3%B3n%20de%20las%20direcciones%20IP.png)
+
+También se configuró la resolución de los nombres de las máquinas para facilitar su identificación dentro del entorno NIS
+
+![Configuración de las direcciones IP con el dominio de NIS](capturas/nis/08.%20Configuraci%C3%B3n%20de%20las%20direcciones%20IP%20con%20el%20dominio%20de%20NIS.png)
+
+Para conservar el dominio NIS después de reiniciar el servidor, se configuró su establecimiento permanente mediante el mecanismo de inicio del sistema
+
+![Configuración del dominio permanentemente](capturas/nis/09.%20Configuraci%C3%B3n%20del%20dominio%20permanentemente.png)
+
+#### 2.12. Creación del Usuario de Prueba e Inicialización del Servidor
+
+Se creó una cuenta local denominada *usuario_nis*, que posteriormente sería publicada mediante los mapas NIS para permitir su consulta desde el cliente
+
+![Creación de un usuario de prueba](capturas/nis/10.%20Creaci%C3%B3n%20de%20un%20usuario%20de%20prueba.png)
+
+Después de preparar el dominio y el usuario, se inicializó el servidor maestro mediante la herramienta *ypinit*:
+
+![Inicialización de los servicios NIS](capturas/nis/11.%20Inicializaci%C3%B3n%20de%20los%20servicios%20NIS.png)
+
+#### 2.13. Habilitación de los Servicios y Verificación del Servidor
+
+Se habilitaron los servicios necesarios para que el servidor NIS pudiera atender las solicitudes de los clientes y mantener su funcionamiento después de reiniciar la máquina:
+
+![Habilitación e iniciación de ypbind](capturas/nis/12.%20Habilitaci%C3%B3n%20e%20iniciaci%C3%B3n%20de%20ypbind.png)
+
+Posteriormente, se verificó la comunicación con el servicio y se consultó el usuario de prueba mediante las herramientas de NIS
+
+![Enlace del servidor NIS y consulta del usuario](capturas/nis/13.%20Enlace%20del%20servidor%20NIS%20y%20consulta%20del%20usuario.png)
+
+#### 2.14. Configuración del Cliente NIS
+
+Una vez preparado el servidor maestro, se procedió a configurar la segunda máquina virtual para que pudiera integrarse al dominio hospital.local. Primeramente se establece el dominio NIS en el cliente:
+
+![Configurar el dominio para el NIS en el Cliente](capturas/nis/14.%20Configurar%20el%20dominio%20para%20el%20NIS%20en%20el%20Cliente.png)
+
+Posteriormente, se instalaron los paquetes necesarios para que la máquina pudiera funcionar como cliente NIS:
+
+![Actualización de Ubuntu para el cliente](capturas/nis/15.%20Actualiaci%C3%B3n%20de%20Ubuntu%20para%20el%20servidor%20del%20cliente.png)
+
+Ahora bien, se configuró el archivo /etc/yp.conf para indicar la dirección del servidor maestro:
+
+![Configuración del servidor NIS](capturas/nis/16.%20Configuraci%C3%B3n%20del%20servidor%20NIS.png)
+
+#### 2.15. Habilitación de los Servicios y Comprobación de la Conexión
+
+Se habilitaron los servicios necesarios para que el cliente pudiera localizar y consultar al servidor NIS
+
+![Habilitar los servicios del NIS](capturas/nis/17.%20Habilitar%20los%20servicios%20del%20NIS.png)
+
+Después se verificó que el cliente estuviera conectado correctamente al servidor maestro
+
+![Comprobar la conexión con el servidor NIS](capturas/nis/18.%20Comprobar%20la%20conexi%C3%B3n%20con%20el%20servidor%20NIS.png)
+
+#### 2.16. Integración con el Sistema de Identificación de Ubuntu
+
+Para que Ubuntu pudiera utilizar los usuarios y grupos proporcionados por NIS, se modificó el archivo /etc/nsswitch.conf. Además, se ajustan las entradas correspondientes a usuarios, grupos y contraseñas para incluir la consulta al servicio NIS:
+
+![Integración de usuarios NIS con el sistema de identificación](capturas/nis/19.%20Integraci%C3%B3n%20de%20usuarios%20NIS%20con%20Sistema%20de%20identificaci%C3%B3n.png)
+
+Con esta configuración, el sistema consulta primero sus archivos locales y mecanismos de identificación, y también puede recurrir a NIS para obtener la información centralizada
+
+#### 2.17. Prueba de Autenticación y Creación del Directorio Personal
+
+Finalmente, se realizó una prueba de autenticación desde el cliente utilizando la cuenta usuario_nis, creada originalmente en el servidor maestro.
+El sistema solicita la contraseña de la cuenta y permite iniciar sesión correctamente, demostrando que el cliente puede utilizar sus credenciales administradas desde el servidor NIS
+
+![Prueba de autenticación de un usuario](capturas/nis/20.%20Prueba%20de%20autenticaci%C3%B3n%20de%20un%20usuario.png)
+
+Adicionalmente, se habilitó el módulo pam_mkhomedir mediante la herramienta de configuración de PAM, permitiendo crear automáticamente el directorio personal del usuario cuando inicia sesión por primera vez en el cliente.
+Se comprobó que el usuario había iniciado sesión correctamente y que su directorio personal correspondía a /home/usuario_nis.
+
+![Verificación del usuario después de la prueba](capturas/nis/21.%20Verificaci%C3%B3n%20del%20usuario%20despu%C3%A9s%20de%20la%20prueba.png)
+
+---
+
 ## 3. Parámetros Técnicos de los Servicios
 
 Los servicios implementados utilizan los siguientes parámetros de red:
@@ -143,6 +267,7 @@ Los servicios implementados utilizan los siguientes parámetros de red:
 |---|---|---|---|---|---|
 | **NTP (Chrony)** | 192.168.1.9 | 123 | UDP | Sincronización de tiempo | Servidor de hora para la red local. |
 | **CUPS** | 192.168.1.9 | 631 | TCP | Servidor de impresión | Administración web mediante `https://192.168.1.9:631`. |
+| **NIS (ypserv)** | 192.168.1.18 | 111 y 871 | TCP/UDP | Autenticación centralizada | Servidor maestro NIS del dominio hospital.local. El puerto 111 corresponde a rpcbind y el 871 al servicio ypserv |
 
 ---
 
@@ -153,3 +278,5 @@ La implementación de los servicios NTP y CUPS permitió establecer dos componen
 Por una parte, Chrony permitió sincronizar el reloj del servidor con fuentes de tiempo externas y configurar el acceso para los dispositivos pertenecientes a la subred local. Por otra parte, CUPS permitió habilitar la administración remota del servicio de impresión y configurar una impresora compartida denominada `Impresora_Hospital`.
 
 De esta manera, se establecieron las configuraciones necesarias para apoyar la sincronización horaria y la gestión centralizada de impresión dentro de la infraestructura del hospital.
+
+Ahora bien, NIS permitió centralizar la administración de usuarios y grupos mediante una arquitectura cliente-servidor. Se configuró un servidor maestro para el dominio hospital.local y se integró una máquina cliente que pudo consultar los usuarios publicados e iniciar sesión utilizando una cuenta creada en el servidor. También se habilitó la creación automática del directorio personal para los usuarios que iniciaran sesión por primera vez. Gracias a esto se puede administrar las identidades dentro del entorno de red implementado para el hospital.
