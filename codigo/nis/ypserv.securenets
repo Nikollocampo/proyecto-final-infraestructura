@@ -1,0 +1,6 @@
+# Acceso local
+255.0.0.0 127.0.0.0
+host ::1
+
+# Red local del laboratorio
+255.255.255.0 192.168.1.0
