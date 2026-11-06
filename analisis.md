@@ -17,6 +17,10 @@ Como equipo de infraestructura TI, se propone el diseño e implementación de un
 *   **Necesidad:** El hospital maneja una gran cantidad de documentación física diaria (fórmulas médicas, resultados de exámenes, facturación, admisiones).
 *   **Justificación:** Centralizar la impresión mediante CUPS permite que cualquier equipo autorizado en la red del hospital pueda enviar documentos a una cola de impresión compartida. Esto reduce costos (al no necesitar una impresora por cada computador), facilita el mantenimiento y permite a los administradores gestionar los trabajos de impresión de forma remota a través de una interfaz web segura.
 
+*   ### C. Servicio NIS
+*   **Necesidad:** El hospital cuenta con diferentes equipos utilizados por médicos, personal de enfermería, laboratorio y administración. Administrar las cuentas de usuario individualmente en cada equipo dificulta el control de acceso y aumenta el trabajo.
+*   **Justificación:** Implementar un servidor NIS el cual permite centralizar la administración de usuarios y grupos, facilitando que los equipos consulten una base de datos compartida para identificar a los usuarios y validar sus credenciales. De esta manera, se simplifica la gestión de cuentas y se evita tener que crear los mismos usuarios de forma independiente.
+
 ---
 
 ## 3. Tabla de Requisitos de Infraestructura
@@ -27,6 +31,7 @@ A continuación, se detallan los parámetros técnicos para los servicios implem
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **NTP (chrony)** | 192.168.1.9 | 123 | UDP | Sincronización de tiempo | Servidor maestro de hora para la red local. |
 | **CUPS** | 192.168.1.9 | 631 | TCP | Servidor de Impresión | Administración web vía `https://192.168.1.9:631` y cola compartida. |
+| **NIS (ypserv)** | 192.168.1.18 | 111 y 871 | TCP/UDP | Autenticación centralizada | Servidor maestro NIS para el dominio hospital.local. |
 
 ---
 
@@ -34,4 +39,5 @@ A continuación, se detallan los parámetros técnicos para los servicios implem
 El servidor Linux se despliega en una máquina virtual con Ubuntu Server 24.04 LTS, configurada en modo **Adaptador Puente** para tener visibilidad directa en la red local del hospital (IP 192.168.1.9). 
 *   El servicio NTP se configura con la directiva `allow` para servir la hora a la subred `192.168.1.0/24`.
 *   El servicio CUPS se configura escuchando en `0.0.0.0:631` y con reglas de acceso `Allow 192.168.1.*` para permitir la administración desde los equipos de los funcionarios.
+*   El servicio NIS se configura mediante un servidor maestro (ypserv) con el dominio hospital.local, encargado de mantener y distribuir los mapas de usuarios y grupos. Los equipos utilizan ypbind para establecer conexión con el servidor y consultar la información centralizada mediante NSS, mientras que PAM permite realizar la autenticación de usuarios.
 *   *(El diagrama visual de esta arquitectura se encuentra en el archivo `diagrama.mmd`)*.
