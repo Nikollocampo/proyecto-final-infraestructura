@@ -28,6 +28,10 @@ Permite sincronizar la hora del servidor con fuentes de tiempo externas y autori
 
 Permite centralizar la administración de impresoras mediante un servidor Linux, facilitando la gestión de los trabajos de impresión y el acceso a una impresora compartida desde la red local.
 
+### C. Servicio NIS
+
+Permite centralizar la administración y autenticación de usuarios de la red, facilitando la consulta de las cuentas de usuario y validando sus credenciales utilizando una base de datos compartida.
+
 ## 4. Estructura del Proyecto
 
 El proyecto se encuentra organizado en los siguientes archivos y directorios:
