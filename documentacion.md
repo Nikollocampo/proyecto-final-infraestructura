@@ -14,13 +14,73 @@ Estos servicios se implementaron sobre un servidor Ubuntu Server 24.04 LTS, aloj
 
 ---
 
-## 2. Implementación y Configuración de los Servicios
+## 2. Dokploy
+**Paso 1.** Se verificó el estado de la infraestructura previamente instalada en Ubuntu mediante el comando sudo docker service ls. Los resultados mostraron que Dokploy, su base de datos PostgreSQL y los servicios de la práctica anterior se encontraban activos, con una réplica disponible por servicio (1/1). Por lo tanto, se tomó la decisión de reutilizar esta infraestructura para el proyecto del Hospital San Juan de Dios de Armenia, sin realizar una nueva instalación.
+
+**Paso 2.** Luego se creó un nuevo proyecto en Dokploy, en este caso con nombre hospital-san-juan-de-dios  destinado al despliegue de la aplicación web institucional y a la administración de su base de datos.
+
+**Paso 3.** Posteriormente se pasó a crear el Servicio web
+Se creó el servicio web-hospital de tipo Application dentro del proyecto institucional. Este servicio se utilizará para desplegar la página web del hospital mediante Dokploy y Traefik.
+
+**Paso 4.** Se preparó una carpeta independiente en Visual Studio Code para desarrollar la página web de demostración del Hospital San Juan de Dios de Armenia. Se organizó la estructura inicial del proyecto con directorios para el código fuente y los archivos públicos, utilizando Node.js y Express.js como tecnologías de desarrollo.
+
+**Paso 5.** Se configuró el archivo package.json con los datos del proyecto y la dependencia Express.js. Posteriormente, se ejecutó npm install para instalar los paquetes necesarios para el funcionamiento de la aplicación web.
+
+**Paso 6.** Se desarrolló el servidor de la aplicación web utilizando Express.js. Se configuró el acceso a los archivos públicos del sitio y una ruta /health para verificar su funcionamiento. El servidor utilizará el puerto 3000 y permitirá publicar la página institucional del hospital.
+
+**Paso 7.** Se inició la aplicación mediante el comando npm start, verificando que el servidor Express.js se ejecutara correctamente en el puerto 3000.
+
+**Paso 8.** Se comprobó desde el navegador el funcionamiento local de la página web del Hospital San Juan de Dios de Armenia. El sitio presenta información institucional y una sección de servicios de referencia, con un diseño adaptable a diferentes dispositivos.
+
+**Paso 9.** Se creó el repositorio, un sólo repositorio donde se almacena todo el proyecto final, como fue creado por otro compañero del grupo se debía integrar el Dokploy.
+
+**Paso 10.** Se organizó el código de la página web del Hospital San Juan de Dios de Armenia dentro de la carpeta codigo/dokploy del repositorio grupal. Se incluyeron los archivos HTML, CSS, JavaScript y la configuración de Node.js, manteniendo separados los componentes de los demás servicios del proyecto.
+
+**Paso 11.** Publicación en GitHub
+Se publicaron los archivos de la aplicación web del hospital en el repositorio GitHub del equipo, mediante un commit específico para el componente Dokploy. Esto permitirá conectar el repositorio con la plataforma y desplegar la página institucional.
+
+**Paso 12.** Configuración del repositorio Git en Dokploy. 
+Se configuró el servicio web-hospital para obtener el código desde el repositorio grupal de GitHub, utilizando la rama main y el directorio /codigo/dokploy. Esta configuración permite que Dokploy acceda a los archivos de la aplicación Express.js para realizar su despliegue.
+
+**Paso 13.** Despliegue de la aplicación Web
+Se inició el despliegue de la aplicación web del Hospital San Juan de Dios de Armenia mediante Dokploy y Nixpacks. La plataforma obtiene el código desde el repositorio GitHub y realiza el proceso de construcción necesario para ejecutar la aplicación en un contenedor Docker.
+
+Se verificó el resultado del despliegue de la aplicación web-hospital en Dokploy, comprobando su finalización y el estado registrado por la plataforma.
+
+**Paso 14.** Se configuró el dominio hospital.192.168.13.40.sslip.io para la aplicación web-hospital, utilizando Traefik como proxy inverso y el puerto interno 3000. Inicialmente se utilizó HTTP para comprobar el acceso local antes de configurar HTTPS.
+
+**Paso 15.** 
+Verificar a través de la terminal que Ubuntu pueda acceder al sitio web.
+
+Se configuró un túnel temporal de Cloudflare para permitir el acceso a la aplicación web del Hospital San Juan de Dios mediante una dirección pública HTTPS. Se verificó la conexión del túnel con el servidor local, permitiendo acceder al sitio sin modificar la configuración de Dokploy ni exponer directamente la máquina virtual a Internet.
+
+**Paso 16.** Se creó el servicio MySQL db-hospital dentro del proyecto hospital-san-juan-de-dios, utilizando la base de datos hospital_db y el usuario hospital_user. Este servicio se utilizará para almacenar información de demostración que posteriormente será consultada desde la aplicación web.
+
+**Paso 17.**  Se inició el despliegue del servicio MySQL db-hospital mediante Dokploy. Posteriormente, se verificó su estado de ejecución para comprobar que la base de datos estuviera disponible para establecer conexiones desde la aplicación web.
+
+**Paso 18.** Se configuraron las variables de entorno de la aplicación web-hospital para establecer su conexión con la base de datos hospital_db. Se definieron el nombre del servicio MySQL, el puerto interno 3306, el usuario y la contraseña, manteniendo las credenciales fuera del código fuente.
+
+**Paso 19.** Se instaló la biblioteca mysql2 en la aplicación Express.js mediante npm, para permitir la conexión con la base de datos MySQL administrada desde Dokploy.
+
+**Paso 20.** Se configuró la conexión de la aplicación Express.js con MySQL mediante la biblioteca mysql2 y las variables de entorno definidas en Dokploy. También se agregó la ruta /db-test para verificar la comunicación con la base de datos.
+
+**Paso 21.** Subir cambios
+Se actualizaron los archivos de la aplicación web en el repositorio grupal de GitHub, incorporando la dependencia mysql2 y la ruta de prueba para verificar la conexión con MySQL.
+
+Se obtuvo un error en un archivo, entonces se subió ese en solitario
+
+**Paso 22.** Se realizó un nuevo despliegue de web-hospital mediante Dokploy para incorporar la dependencia mysql2 y la ruta de verificación de la conexión con MySQL.
+
+**Paso 23.** Se verificó la comunicación entre la aplicación web Express.js y la base de datos MySQL mediante la ruta /db-test. Para realizar la conexión se utilizó el nombre interno del servicio proporcionado por Dokploy.
+
+
+## 3. Implementación y Configuración de los Servicios
 
 ### A. Servicio NTP
 
 **Objetivo:** Proporcionar sincronización de tiempo a los equipos de la red del hospital, garantizando la precisión de los registros y eventos del sistema.
 
-#### 2.1. Procedimiento de Instalación
+#### 3.1. Procedimiento de Instalación
 
 Se instaló el paquete `chrony`, una herramienta utilizada en Ubuntu para la sincronización de tiempo. Primero se actualizaron los repositorios del sistema y posteriormente se ejecutó la instalación:
 
@@ -30,7 +90,7 @@ sudo apt install chrony -y
 ```
 ![Actualización del sistema](capturas/ntp/01_actualizacion_sistema.png)
 
-#### 2.2. Configuración del Servidor
+#### 3.2. Configuración del Servidor
 
 Para permitir que el servidor no solo sincronice su hora con internet, sino que también pueda atender las solicitudes de los demás equipos del hospital, se editó el archivo de configuración principal:
 
@@ -44,7 +104,7 @@ allow 192.168.1.0/24
 ```
 ![Configuración de Chrony](capturas/ntp/02_configuracion_chrony.png)
 
-#### 2.3. Verificación y Pruebas
+#### 3.3. Verificación y Pruebas
 
 Después de realizar la configuración, se reinició el servicio para aplicar los cambios y se habilitó su inicio automático con el sistema operativo:
 
@@ -69,7 +129,7 @@ chronyc sources
 
 **Objetivo:** Centralizar la administración de impresoras y permitir que los equipos autorizados de la red del hospital puedan acceder al servicio de impresión.
 
-#### 2.4. Procedimiento de Instalación
+#### 3.4. Procedimiento de Instalación
 
 Se instaló el servidor de impresión CUPS y se agregó el usuario administrador `nikoll` al grupo `lpadmin`, encargado de gestionar las impresoras y administrar el servicio:
 
@@ -83,7 +143,7 @@ sudo usermod -aG lpadmin $USER
 
 Para aplicar los cambios relacionados con los permisos del grupo, se reinició la máquina virtual.
 
-#### 2.5. Configuración para Acceso Remoto
+#### 3.5. Configuración para Acceso Remoto
 
 Se editó el archivo principal de configuración de CUPS para permitir conexiones desde otros equipos de la red local:
 
@@ -108,7 +168,7 @@ sudo systemctl enable cups
 ```
 ![Reinicio del servicio CUPS](capturas/cups/05_reinicio_servicio.png)
 
-#### 2.6. Verificación y Pruebas
+#### 3.6. Verificación y Pruebas
 
 Se realizó una prueba de acceso desde un equipo Windows conectado a la red local, ingresando a la interfaz web de administración de CUPS mediante la siguiente dirección:
 
@@ -116,7 +176,7 @@ Se realizó una prueba de acceso desde un equipo Windows conectado a la red loca
 
 Durante el acceso, el navegador presentó una advertencia de conexión no privada debido al uso de un certificado autofirmado. Se seleccionó la opción **Avanzado** y posteriormente **Continuar** para ingresar a la interfaz.
 
-#### 2.7. Creación de la Impresora Compartida
+#### 3.7. Creación de la Impresora Compartida
 
 Desde la interfaz web de CUPS se realizó el procedimiento para agregar una impresora:
 
@@ -139,7 +199,7 @@ Como resultado, se configuró una impresora denominada `Impresora_Hospital` dent
 
 **Objetivo:** Centralizar la administración de usuarios y grupos de la red del hospital, permitiendo que diferentes equipos consulten una misma fuente de información para identificar y autenticar a los usuarios.
 
-#### 2.8. Creación y Preparación de las instancias
+#### 3.8. Creación y Preparación de las instancias
 
 Se crearon dos instancias de Ubuntu mediante Multipass, utilizando una para funcionar como servidor maestro NIS y otra como cliente.
 
@@ -149,7 +209,7 @@ Se identificaron las máquinas virtuales y se verificó que ambas estuvieran en 
 
 ![Verificación de ambas instancias](capturas/nis/02.%20Verificaci%C3%B3n%20de%20ambas%20instancias.png)
 
-#### 2.9. Actualización e Instalación de los Paquetes
+#### 3.9. Actualización e Instalación de los Paquetes
 
 Primero se actualizaron los repositorios y paquetes del servidor para preparar el entorno de instalación
 
@@ -166,7 +226,7 @@ sudo apt install ypserv yp-tools rpcbind -y
 ```
 ![Instalación de los paquetes necesarios](capturas/nis/04.%20Instalaci%C3%B3n%20de%20los%20paquetes%20necesarios.png)
 
-#### 2.10. Definición del Dominio NIS
+#### 3.10. Definición del Dominio NIS
 
 Se estableció el dominio hospital.local, que identifica el entorno NIS al que pertenecerán el servidor y sus clientes
 
@@ -175,7 +235,7 @@ sudo domainname hospital.local
 ```
 ![Definición del dominio](capturas/nis/05.%20Definici%C3%B3n%20del%20dominio.png)
 
-#### 2.11. Configuración de las Direcciones IP
+#### 3.11. Configuración de las Direcciones IP
 
 Se asignaron direcciones IP a las dos máquinas virtuales para garantizar su comunicación dentro de la red local.
 
@@ -193,7 +253,7 @@ Para conservar el dominio NIS después de reiniciar el servidor, se configuró s
 
 ![Configuración del dominio permanentemente](capturas/nis/09.%20Configuraci%C3%B3n%20del%20dominio%20permanentemente.png)
 
-#### 2.12. Creación del Usuario de Prueba e Inicialización del Servidor
+#### 3.12. Creación del Usuario de Prueba e Inicialización del Servidor
 
 Se creó una cuenta local denominada *usuario_nis*, que posteriormente sería publicada mediante los mapas NIS para permitir su consulta desde el cliente
 
@@ -203,7 +263,7 @@ Después de preparar el dominio y el usuario, se inicializó el servidor maestro
 
 ![Inicialización de los servicios NIS](capturas/nis/11.%20Inicializaci%C3%B3n%20de%20los%20servicios%20NIS.png)
 
-#### 2.13. Habilitación de los Servicios y Verificación del Servidor
+#### 3.13. Habilitación de los Servicios y Verificación del Servidor
 
 Se habilitaron los servicios necesarios para que el servidor NIS pudiera atender las solicitudes de los clientes y mantener su funcionamiento después de reiniciar la máquina:
 
@@ -213,7 +273,7 @@ Posteriormente, se verificó la comunicación con el servicio y se consultó el 
 
 ![Enlace del servidor NIS y consulta del usuario](capturas/nis/13.%20Enlace%20del%20servidor%20NIS%20y%20consulta%20del%20usuario.png)
 
-#### 2.14. Configuración del Cliente NIS
+#### 3.14. Configuración del Cliente NIS
 
 Una vez preparado el servidor maestro, se procedió a configurar la segunda máquina virtual para que pudiera integrarse al dominio hospital.local. Primeramente se establece el dominio NIS en el cliente:
 
@@ -227,7 +287,7 @@ Ahora bien, se configuró el archivo /etc/yp.conf para indicar la dirección del
 
 ![Configuración del servidor NIS](capturas/nis/16.%20Configuraci%C3%B3n%20del%20servidor%20NIS.png)
 
-#### 2.15. Habilitación de los Servicios y Comprobación de la Conexión
+#### 3.15. Habilitación de los Servicios y Comprobación de la Conexión
 
 Se habilitaron los servicios necesarios para que el cliente pudiera localizar y consultar al servidor NIS
 
@@ -237,7 +297,7 @@ Después se verificó que el cliente estuviera conectado correctamente al servid
 
 ![Comprobar la conexión con el servidor NIS](capturas/nis/18.%20Comprobar%20la%20conexi%C3%B3n%20con%20el%20servidor%20NIS.png)
 
-#### 2.16. Integración con el Sistema de Identificación de Ubuntu
+#### 3.16. Integración con el Sistema de Identificación de Ubuntu
 
 Para que Ubuntu pudiera utilizar los usuarios y grupos proporcionados por NIS, se modificó el archivo /etc/nsswitch.conf. Además, se ajustan las entradas correspondientes a usuarios, grupos y contraseñas para incluir la consulta al servicio NIS:
 
@@ -245,7 +305,7 @@ Para que Ubuntu pudiera utilizar los usuarios y grupos proporcionados por NIS, s
 
 Con esta configuración, el sistema consulta primero sus archivos locales y mecanismos de identificación, y también puede recurrir a NIS para obtener la información centralizada
 
-#### 2.17. Prueba de Autenticación y Creación del Directorio Personal
+#### 3.17. Prueba de Autenticación y Creación del Directorio Personal
 
 Finalmente, se realizó una prueba de autenticación desde el cliente utilizando la cuenta usuario_nis, creada originalmente en el servidor maestro.
 El sistema solicita la contraseña de la cuenta y permite iniciar sesión correctamente, demostrando que el cliente puede utilizar sus credenciales administradas desde el servidor NIS
@@ -259,7 +319,7 @@ Se comprobó que el usuario había iniciado sesión correctamente y que su direc
 
 ---
 
-## 3. Parámetros Técnicos de los Servicios
+## 4. Parámetros Técnicos de los Servicios
 
 Los servicios implementados utilizan los siguientes parámetros de red:
 
@@ -271,7 +331,7 @@ Los servicios implementados utilizan los siguientes parámetros de red:
 
 ---
 
-## 4. Resultados de la Implementación
+## 5. Resultados de la Implementación
 
 La implementación de los servicios NTP y CUPS permitió establecer dos componentes centralizados dentro de la infraestructura tecnológica propuesta para el Hospital San Juan de Dios de Armenia.
 
