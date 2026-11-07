@@ -28,6 +28,7 @@ Se creó el servicio web-hospital de tipo Application dentro del proyecto instit
 <img width="885" height="782" alt="evidencia5" src="https://github.com/user-attachments/assets/de2b3ddf-1b5a-4d95-92cd-e7166b345c43" />
 
 **Paso 4.** Se preparó una carpeta independiente en Visual Studio Code para desarrollar la página web de demostración del Hospital San Juan de Dios de Armenia. Se organizó la estructura inicial del proyecto con directorios para el código fuente y los archivos públicos, utilizando Node.js y Express.js como tecnologías de desarrollo.
+
 <img width="377" height="200" alt="evidencia6" src="https://github.com/user-attachments/assets/11ce9d30-bd3f-4118-b879-7d35e7c4b9d4" />
 
 **Paso 5.** Se configuró el archivo package.json con los datos del proyecto y la dependencia Express.js. Posteriormente, se ejecutó npm install para instalar los paquetes necesarios para el funcionamiento de la aplicación web.
