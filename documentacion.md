@@ -109,6 +109,7 @@ Se obtuvo un error en un archivo, entonces se subió ese en solitario
 **Paso 23.** Se verificó la comunicación entre la aplicación web Express.js y la base de datos MySQL mediante la ruta /db-test. Para realizar la conexión se utilizó el nombre interno del servicio proporcionado por Dokploy.
 <img width="860" height="223" alt="evidencia33" src="https://github.com/user-attachments/assets/c82b43c8-30cf-4940-b0ca-529865615ae9" />
 
+---
 
 ## 3. Implementación y Configuración de los Servicios
 
