@@ -363,7 +363,11 @@ Los servicios implementados utilizan los siguientes parámetros de red:
 |---|---|---|---|---|---|
 | **NTP (Chrony)** | 192.168.1.9 | 123 | UDP | Sincronización de tiempo | Servidor de hora para la red local. |
 | **CUPS** | 192.168.1.9 | 631 | TCP | Servidor de impresión | Administración web mediante `https://192.168.1.9:631`. |
-| **NIS (ypserv)** | 192.168.1.18 | 111 y 871 | TCP/UDP | Autenticación centralizada | Servidor maestro NIS del dominio hospital.local. El puerto 111 corresponde a rpcbind y el 871 al servicio ypserv |
+| **NIS (ypserv)** | 192.168.1.18 | 111 y 871 | TCP/UDP | Autenticación centralizada | Servidor maestro NIS del dominio hospital.local. El puerto 111 corresponde a rpcbind y el 871 al servicio ypserv. |
+| **Dokploy** | 192.168.13.40 | 3000 | TCP/HTTP | Plataforma de despliegue | Panel de administración disponible en `http://192.168.13.40:3000`. |
+| **Aplicación web (Express.js)** | 192.168.13.40 | 3000 (interno), 80 (acceso web) | TCP/HTTP | Servidor web institucional | Sitio de demostración del hospital disponible en `http://hospital.192.168.13.40.sslip.io`. |
+| **MySQL** | 192.168.13.40 | 3306 (interno) | TCP | Base de datos relacional | Base de datos `hospital_db`, desplegada mediante Dokploy y conectada con la aplicación web a través de la red interna de Docker. |
+| **Cloudflare Tunnel** | Acceso mediante túnel temporal | 443 (HTTPS público) | HTTPS | Acceso web seguro temporal | Permite acceder a la aplicación mediante una dirección HTTPS generada por Cloudflare mientras el túnel permanece activo. |
 
 ---
 
@@ -376,3 +380,15 @@ Por una parte, Chrony permitió sincronizar el reloj del servidor con fuentes de
 De esta manera, se establecieron las configuraciones necesarias para apoyar la sincronización horaria y la gestión centralizada de impresión dentro de la infraestructura del hospital.
 
 Ahora bien, NIS permitió centralizar la administración de usuarios y grupos mediante una arquitectura cliente-servidor. Se configuró un servidor maestro para el dominio hospital.local y se integró una máquina cliente que pudo consultar los usuarios publicados e iniciar sesión utilizando una cuenta creada en el servidor. También se habilitó la creación automática del directorio personal para los usuarios que iniciaran sesión por primera vez. Gracias a esto se puede administrar las identidades dentro del entorno de red implementado para el hospital.
+
+Por otra parte, se implementó **Dokploy** en una máquina virtual Ubuntu con dirección IP `192.168.13.40`, reutilizando la infraestructura de contenedores Docker previamente configurada. Desde su panel de administración se creó el proyecto `hospital-san-juan-de-dios`, dentro del entorno `production`, para organizar el despliegue de la aplicación web y su base de datos.
+
+Se desarrolló una página web institucional de demostración utilizando **Node.js y Express.js**, con información general del hospital y secciones de presentación de servicios. El código fuente se incorporó al repositorio grupal de GitHub y posteriormente se desplegó mediante Dokploy, utilizando Git como proveedor del código y Nixpacks para la construcción de la aplicación. El despliegue finalizó correctamente y se comprobó el funcionamiento del sitio desde un navegador mediante el dominio `hospital.192.168.13.40.sslip.io`.
+
+Adicionalmente, se configuró un acceso **HTTPS temporal mediante Cloudflare Tunnel**, con el cual se verificó que la página podía visualizarse a través de una conexión segura. Este mecanismo permitió demostrar el acceso HTTPS sin modificar la configuración del dominio local, aunque no constituye una configuración permanente de SSL en Dokploy.
+
+También se creó y desplegó una base de datos **MySQL 8.4.13**, identificada como `hospital_db`, mediante el servicio `db-hospital` de Dokploy. Para establecer la comunicación con la aplicación web, se instaló la dependencia `mysql2` y se configuraron las variables de entorno correspondientes al servidor, puerto, usuario, contraseña y nombre de la base de datos.
+
+Finalmente, se implementó la ruta `/db-test`, desde la cual se ejecutó una consulta SQL a MySQL. La prueba devolvió el mensaje `conexion exitosa`, el nombre de la base de datos `hospital_db` y la versión del servidor `8.4.13`, comprobando que la aplicación Express.js podía comunicarse correctamente con el servicio de base de datos.
+
+Con esta implementación se consiguió disponer de una aplicación web desplegada en contenedores, administrada mediante Dokploy y conectada a una base de datos MySQL. Esto complementa los servicios de infraestructura desarrollados por el equipo y permite demostrar un entorno tecnológico integrado para el proyecto académico del Hospital San Juan de Dios de Armenia.
