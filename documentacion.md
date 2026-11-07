@@ -16,62 +16,97 @@ Estos servicios se implementaron sobre un servidor Ubuntu Server 24.04 LTS, aloj
 
 ## 2. Dokploy
 **Paso 1.** Se verificó el estado de la infraestructura previamente instalada en Ubuntu mediante el comando sudo docker service ls. Los resultados mostraron que Dokploy, su base de datos PostgreSQL y los servicios de la práctica anterior se encontraban activos, con una réplica disponible por servicio (1/1). Por lo tanto, se tomó la decisión de reutilizar esta infraestructura para el proyecto del Hospital San Juan de Dios de Armenia, sin realizar una nueva instalación.
+<img width="885" height="328" alt="evidencia1" src="https://github.com/user-attachments/assets/a232b989-de61-4078-b7b2-c0d2b0c1ac1a" />
 
 **Paso 2.** Luego se creó un nuevo proyecto en Dokploy, en este caso con nombre hospital-san-juan-de-dios  destinado al despliegue de la aplicación web institucional y a la administración de su base de datos.
+<img width="650" height="540" alt="evidencia2" src="https://github.com/user-attachments/assets/41e30301-0f1f-431f-94e5-9a2045b80f38" />
+<img width="892" height="452" alt="evidencia3" src="https://github.com/user-attachments/assets/3694eb79-2d65-4218-b68a-2b4cad9c7b15" />
 
 **Paso 3.** Posteriormente se pasó a crear el Servicio web
 Se creó el servicio web-hospital de tipo Application dentro del proyecto institucional. Este servicio se utilizará para desplegar la página web del hospital mediante Dokploy y Traefik.
+<img width="647" height="540" alt="evidencia4" src="https://github.com/user-attachments/assets/1990d5e2-a6b0-4d5c-88bc-ae713c1eb234" />
+<img width="885" height="782" alt="evidencia5" src="https://github.com/user-attachments/assets/de2b3ddf-1b5a-4d95-92cd-e7166b345c43" />
 
 **Paso 4.** Se preparó una carpeta independiente en Visual Studio Code para desarrollar la página web de demostración del Hospital San Juan de Dios de Armenia. Se organizó la estructura inicial del proyecto con directorios para el código fuente y los archivos públicos, utilizando Node.js y Express.js como tecnologías de desarrollo.
+<img width="377" height="200" alt="evidencia6" src="https://github.com/user-attachments/assets/11ce9d30-bd3f-4118-b879-7d35e7c4b9d4" />
 
 **Paso 5.** Se configuró el archivo package.json con los datos del proyecto y la dependencia Express.js. Posteriormente, se ejecutó npm install para instalar los paquetes necesarios para el funcionamiento de la aplicación web.
+<img width="1000" height="920" alt="evidencia7" src="https://github.com/user-attachments/assets/2ce59dd2-3c71-48e0-9b88-a012770aa6b0" />
 
 **Paso 6.** Se desarrolló el servidor de la aplicación web utilizando Express.js. Se configuró el acceso a los archivos públicos del sitio y una ruta /health para verificar su funcionamiento. El servidor utilizará el puerto 3000 y permitirá publicar la página institucional del hospital.
+<img width="873" height="586" alt="evidencia8" src="https://github.com/user-attachments/assets/62e112af-3373-416f-8296-b48a1cae87d9" />
 
 **Paso 7.** Se inició la aplicación mediante el comando npm start, verificando que el servidor Express.js se ejecutara correctamente en el puerto 3000.
+<img width="797" height="221" alt="evidencia9" src="https://github.com/user-attachments/assets/8c11b02f-44d3-485e-afc9-4ad7aa7c496b" />
 
 **Paso 8.** Se comprobó desde el navegador el funcionamiento local de la página web del Hospital San Juan de Dios de Armenia. El sitio presenta información institucional y una sección de servicios de referencia, con un diseño adaptable a diferentes dispositivos.
+<img width="938" height="905" alt="evidencia10" src="https://github.com/user-attachments/assets/22b10e4d-50eb-4e08-8a16-023104552dd5" />
 
 **Paso 9.** Se creó el repositorio, un sólo repositorio donde se almacena todo el proyecto final, como fue creado por otro compañero del grupo se debía integrar el Dokploy.
+<img width="1185" height="558" alt="evidencia11" src="https://github.com/user-attachments/assets/8303641c-35f3-4fad-a5da-5a56b5c08e1c" />
 
 **Paso 10.** Se organizó el código de la página web del Hospital San Juan de Dios de Armenia dentro de la carpeta codigo/dokploy del repositorio grupal. Se incluyeron los archivos HTML, CSS, JavaScript y la configuración de Node.js, manteniendo separados los componentes de los demás servicios del proyecto.
+<img width="810" height="298" alt="evidencia12" src="https://github.com/user-attachments/assets/f4184972-e758-4664-9a69-9b95c9674b31" />
 
 **Paso 11.** Publicación en GitHub
 Se publicaron los archivos de la aplicación web del hospital en el repositorio GitHub del equipo, mediante un commit específico para el componente Dokploy. Esto permitirá conectar el repositorio con la plataforma y desplegar la página institucional.
+<img width="893" height="637" alt="evidencia13" src="https://github.com/user-attachments/assets/7bfbbbf5-e06d-4e08-b9f0-1ada55e8004c" />
+<img width="1497" height="280" alt="evidencia14" src="https://github.com/user-attachments/assets/0f459717-2e61-46ad-bcdb-ebf3d32dc7bd" />
 
 **Paso 12.** Configuración del repositorio Git en Dokploy. 
 Se configuró el servicio web-hospital para obtener el código desde el repositorio grupal de GitHub, utilizando la rama main y el directorio /codigo/dokploy. Esta configuración permite que Dokploy acceda a los archivos de la aplicación Express.js para realizar su despliegue.
+<img width="842" height="847" alt="evidencia15" src="https://github.com/user-attachments/assets/534b5571-2a55-4720-8020-bf8b32fac9a9" />
 
 **Paso 13.** Despliegue de la aplicación Web
 Se inició el despliegue de la aplicación web del Hospital San Juan de Dios de Armenia mediante Dokploy y Nixpacks. La plataforma obtiene el código desde el repositorio GitHub y realiza el proceso de construcción necesario para ejecutar la aplicación en un contenedor Docker.
+<img width="916" height="750" alt="evidencia16" src="https://github.com/user-attachments/assets/037a2ca0-e706-46f5-8828-5be4a04e6cb0" />
 
 Se verificó el resultado del despliegue de la aplicación web-hospital en Dokploy, comprobando su finalización y el estado registrado por la plataforma.
+<img width="830" height="477" alt="evidencia17" src="https://github.com/user-attachments/assets/7ac4ddc8-4b2f-4b08-9cd3-c09ce8a06119" />
 
 **Paso 14.** Se configuró el dominio hospital.192.168.13.40.sslip.io para la aplicación web-hospital, utilizando Traefik como proxy inverso y el puerto interno 3000. Inicialmente se utilizó HTTP para comprobar el acceso local antes de configurar HTTPS.
+<img width="887" height="880" alt="evidencia18" src="https://github.com/user-attachments/assets/f61e12f3-db98-4c81-8ef4-4d2a1e489c7f" />
+
+La aplicación se visualizó correctamente desde el navegador, comprobando su funcionamiento a través de Dokploy y Traefik.
+<img width="942" height="962" alt="evidencia19" src="https://github.com/user-attachments/assets/85a99cfb-7489-45e7-86e9-bfe8665f1dbc" />
 
 **Paso 15.** 
 Verificar a través de la terminal que Ubuntu pueda acceder al sitio web.
+<img width="887" height="233" alt="evidencia20" src="https://github.com/user-attachments/assets/fbb80252-61ce-469a-a62a-b84ecbf2f58e" />
 
 Se configuró un túnel temporal de Cloudflare para permitir el acceso a la aplicación web del Hospital San Juan de Dios mediante una dirección pública HTTPS. Se verificó la conexión del túnel con el servidor local, permitiendo acceder al sitio sin modificar la configuración de Dokploy ni exponer directamente la máquina virtual a Internet.
+<img width="1200" height="205" alt="evidencia21" src="https://github.com/user-attachments/assets/fa6432ff-ac79-4a96-bd71-bc67f51de37d" />
+<img width="955" height="798" alt="evidencia22" src="https://github.com/user-attachments/assets/50ad28ed-6f5d-4869-8274-d60a75ca0466" />
 
 **Paso 16.** Se creó el servicio MySQL db-hospital dentro del proyecto hospital-san-juan-de-dios, utilizando la base de datos hospital_db y el usuario hospital_user. Este servicio se utilizará para almacenar información de demostración que posteriormente será consultada desde la aplicación web.
+<img width="852" height="842" alt="evidencia23" src="https://github.com/user-attachments/assets/b78c384c-78a5-4963-b462-103afbcce701" />
+<img width="600" height="522" alt="evidencia24" src="https://github.com/user-attachments/assets/d90a4f54-77ba-4ba2-be61-8795d35f97e2" />
 
 **Paso 17.**  Se inició el despliegue del servicio MySQL db-hospital mediante Dokploy. Posteriormente, se verificó su estado de ejecución para comprobar que la base de datos estuviera disponible para establecer conexiones desde la aplicación web.
+<img width="1127" height="77" alt="evidencia25" src="https://github.com/user-attachments/assets/8e598689-33e9-4378-b4d3-a85451cb1335" />
+<img width="1792" height="77" alt="evidencia26" src="https://github.com/user-attachments/assets/5443c6f4-5d34-4a17-9557-4c6f46d289f2" />
 
 **Paso 18.** Se configuraron las variables de entorno de la aplicación web-hospital para establecer su conexión con la base de datos hospital_db. Se definieron el nombre del servicio MySQL, el puerto interno 3306, el usuario y la contraseña, manteniendo las credenciales fuera del código fuente.
+<img width="1786" height="843" alt="evidencia27" src="https://github.com/user-attachments/assets/7ea2dab5-d561-4059-a151-255ae36cdd11" />
 
 **Paso 19.** Se instaló la biblioteca mysql2 en la aplicación Express.js mediante npm, para permitir la conexión con la base de datos MySQL administrada desde Dokploy.
+<img width="860" height="207" alt="evidencia28" src="https://github.com/user-attachments/assets/deb562fd-0efb-4ed7-97a0-6c20cebc2e1f" />
 
 **Paso 20.** Se configuró la conexión de la aplicación Express.js con MySQL mediante la biblioteca mysql2 y las variables de entorno definidas en Dokploy. También se agregó la ruta /db-test para verificar la comunicación con la base de datos.
+<img width="1413" height="897" alt="evidencia29" src="https://github.com/user-attachments/assets/3e8b1be9-4588-486b-947c-95850636422a" />
 
 **Paso 21.** Subir cambios
 Se actualizaron los archivos de la aplicación web en el repositorio grupal de GitHub, incorporando la dependencia mysql2 y la ruta de prueba para verificar la conexión con MySQL.
+<img width="721" height="72" alt="evidencia30" src="https://github.com/user-attachments/assets/2eedd7c8-7af7-488f-bc06-be482aaa5a0c" />
 
 Se obtuvo un error en un archivo, entonces se subió ese en solitario
+<img width="887" height="233" alt="evidencia31" src="https://github.com/user-attachments/assets/31db6f18-ed9e-43e9-a3d5-37dd02cbfa5f" />
 
 **Paso 22.** Se realizó un nuevo despliegue de web-hospital mediante Dokploy para incorporar la dependencia mysql2 y la ruta de verificación de la conexión con MySQL.
+<img width="1837" height="780" alt="evidencia32" src="https://github.com/user-attachments/assets/ada62095-2cb4-4251-bdf5-d7c818052df6" />
 
 **Paso 23.** Se verificó la comunicación entre la aplicación web Express.js y la base de datos MySQL mediante la ruta /db-test. Para realizar la conexión se utilizó el nombre interno del servicio proporcionado por Dokploy.
+<img width="860" height="223" alt="evidencia33" src="https://github.com/user-attachments/assets/c82b43c8-30cf-4940-b0ca-529865615ae9" />
 
 
 ## 3. Implementación y Configuración de los Servicios
