@@ -45,6 +45,10 @@ Se implementó Dokploy para administrar y desplegar aplicaciones mediante conten
 
 La aplicación se desplegó desde GitHub utilizando Nixpacks y se verificó su funcionamiento mediante `http://hospital.192.168.13.40.sslip.io`. También se comprobó la conexión exitosa con la base de datos `hospital_db` mediante la ruta `/db-test` y se habilitó acceso HTTPS temporal utilizando Cloudflare Tunnel.
 
+### E. Servicio NFS
+ 
+Permite compartir carpetas desde un servidor Linux central con los demás equipos Linux de la red. Se configuró una carpeta de trabajo con lectura y escritura restringida al grupo `personal_hospital` y una carpeta de protocolos institucionales de solo lectura, montadas automáticamente en los clientes.
+
 ## 4. Estructura del Proyecto
 
 El proyecto se encuentra organizado en los siguientes archivos y directorios:

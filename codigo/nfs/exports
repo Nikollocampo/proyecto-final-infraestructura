@@ -1,0 +1,14 @@
+# /etc/exports - Servidor NFS
+# Proyecto: Infraestructura TI - Hospital San Juan de Dios de Armenia
+#
+# compartido : lectura/escritura para el personal del hospital (grupo personal_hospital)
+# protocolos : solo lectura (guías y protocolos institucionales)
+#
+# root_squash : el usuario root de los clientes se mapea a "nobody" (no tiene privilegios en el servidor)
+# sync        : los cambios se escriben en disco antes de responder al cliente
+# no_subtree_check : evita problemas cuando se renombran archivos abiertos
+#
+# Red puenteada (WiFi) del laboratorio: 192.168.33.0/24
+
+/srv/nfs/hospital/compartido  192.168.33.0/24(rw,sync,no_subtree_check,root_squash)
+/srv/nfs/hospital/protocolos  192.168.33.0/24(ro,sync,no_subtree_check,root_squash)

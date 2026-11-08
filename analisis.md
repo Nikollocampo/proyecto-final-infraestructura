@@ -27,6 +27,10 @@ Como equipo de infraestructura TI, se propone el diseño e implementación de un
 *   **Necesidad:** El hospital requiere una plataforma que facilite el despliegue y la administración de aplicaciones web, así como su comunicación con una base de datos.
 *   **Justificación:** Dokploy permite gestionar aplicaciones mediante contenedores Docker desde una interfaz web. Para el proyecto se desplegó una página institucional de demostración desarrollada con Node.js y Express.js, conectada a MySQL. Esto facilita la organización de los servicios, su actualización y la verificación de su funcionamiento.
 
+### E. Servicio NFS
+*   **Necesidad:** Las áreas del hospital (urgencias, laboratorio, enfermería y administración) generan documentos que deben consultar varios equipos: turnos, reportes de laboratorio y protocolos clínicos. Guardarlos en cada computador provoca versiones duplicadas y dificulta el control de acceso.
+*   **Justificación:** NFS permite que los equipos Linux monten carpetas ubicadas en un servidor central como si fueran locales. Se definió una carpeta de trabajo con lectura y escritura solo para el grupo `personal_hospital` y una carpeta de protocolos de solo lectura, para que el personal consulte la versión oficial sin poder modificarla. Con la opción `root_squash`, ni siquiera el administrador de un equipo cliente puede saltarse estos permisos, algo importante cuando se maneja información sensible.
+
 ---
 
 ## 3. Tabla de Requisitos de Infraestructura
@@ -41,6 +45,7 @@ A continuación, se detallan los parámetros técnicos para los servicios implem
 | **Dokploy** | 192.168.13.40 | 3000 | TCP/HTTP | Plataforma de despliegue | Panel de administración en `http://192.168.13.40:3000`. |
 | **Aplicación web (Express.js)** | 192.168.13.40 | 80 (acceso web), 3000 (interno) | TCP/HTTP | Servidor web | Sitio institucional de demostración en `http://hospital.192.168.13.40.sslip.io`. |
 | **MySQL** | 192.168.13.40 | 3306 (interno) | TCP | Base de datos | Base de datos `hospital_db`, conectada con la aplicación Express.js. |
+| **NFS (nfs-kernel-server)** | 192.168.33.14 | 2049 (y 111 rpcbind) | TCP/UDP | Compartición de archivos Linux | Recursos `compartido` (lectura/escritura) y `protocolos` (solo lectura) para la subred `192.168.33.0/24`. |
 
 ---
 
@@ -53,3 +58,4 @@ El servidor Linux se despliega en una máquina virtual con Ubuntu Server 24.04 L
 *   El servicio NIS se configura mediante un servidor maestro (ypserv) con el dominio hospital.local, encargado de mantener y distribuir los mapas de usuarios y grupos. Los equipos utilizan ypbind para establecer conexión con el servidor y consultar la información centralizada mediante NSS, mientras que PAM permite realizar la autenticación de usuarios.
 *   El servicio Dokploy se implementa en una máquina virtual Ubuntu con IP `192.168.13.40`, utilizando Docker para administrar los servicios `web-hospital` y `db-hospital`. La aplicación Express.js recibe las solicitudes web mediante Traefik y se conecta a MySQL por la red interna de Docker, utilizando variables de entorno para las credenciales. Adicionalmente, se verificó el acceso HTTPS temporal mediante Cloudflare Tunnel.
 *   *(El diagrama visual de esta arquitectura se encuentra en el archivo `diagrama.mmd`)*.
+*   El servicio NFS se configura con `nfs-kernel-server`, exportando `/srv/nfs/hospital/compartido` (lectura/escritura, grupo `personal_hospital`) y `/srv/nfs/hospital/protocolos` (solo lectura) a la subred `192.168.33.0/24` con la opción `root_squash`. Los clientes Linux montan los recursos en `/mnt/hospital/` de forma permanente mediante `/etc/fstab`. Los usuarios utilizan los mismos UID/GID en servidor y clientes, lo que se complementa con la administración centralizada de NIS.

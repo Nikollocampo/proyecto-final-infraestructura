@@ -354,6 +354,201 @@ Se comprobó que el usuario había iniciado sesión correctamente y que su direc
 
 ![Verificación del usuario después de la prueba](capturas/nis/21.%20Verificaci%C3%B3n%20del%20usuario%20despu%C3%A9s%20de%20la%20prueba.png)
 
+
+---
+
+### D. Servicio NFS
+
+**Objetivo:** Permitir que los equipos Linux del hospital accedan a carpetas compartidas desde un servidor central, controlando quién puede leer y escribir en cada una.
+
+Se definieron dos recursos compartidos:
+
+| Recurso | Ruta en el servidor | Punto de montaje en el cliente | Acceso |
+|---|---|---|---|
+| Compartido | `/srv/nfs/hospital/compartido` | `/mnt/hospital/compartido` | Lectura y escritura, solo para el grupo `personal_hospital` |
+| Protocolos | `/srv/nfs/hospital/protocolos` | `/mnt/hospital/protocolos` | Solo lectura para todos los clientes |
+
+#### 3.18. Creación y Preparación de las Instancias
+
+Se crearon dos instancias de Ubuntu 24.04 mediante Multipass, conectadas a la red puenteada para que pudieran comunicarse entre sí: `nfs-servidor`, que funciona como servidor NFS, y `nfs-cliente`, que monta los recursos compartidos.
+
+```bash
+multipass networks
+multipass launch 24.04 --name nfs-servidor --network name="Wi-Fi"
+multipass launch 24.04 --name nfs-cliente --network name="Wi-Fi"
+multipass list
+```
+![Creación de las instancias NFS](capturas/nfs/01_creacion_instancias.png)
+
+Se identificaron las direcciones IP de ambas instancias en la red puenteada: el servidor quedó con la IP `192.168.33.14` y el cliente con la IP `192.168.33.15`. Para identificar la red a la que pertenecen se ejecutó `ip route` en el servidor, obteniendo la subred `192.168.33.0/24`, que es la que se autoriza en las exportaciones. La otra red que muestra cada instancia corresponde a la red interna de Multipass y no se utilizó.
+
+![Direcciones IP de las instancias](capturas/nfs/02_ip_instancias.png)
+
+#### 3.19. Instalación del Servidor NFS
+
+En la instancia `nfs-servidor` se actualizaron los repositorios y se instaló el paquete `nfs-kernel-server`:
+
+```bash
+sudo apt update
+sudo apt install nfs-kernel-server -y
+```
+![Instalación de nfs-kernel-server](capturas/nfs/03_instalacion_nfs_server.png)
+
+#### 3.20. Creación del Grupo, Usuario y Directorios Compartidos
+
+Se creó el grupo `personal_hospital` (GID 3000) y el usuario `medico1` (UID 3001). Se utilizaron identificadores fijos porque NFS reconoce a los usuarios por su número (UID/GID) y no por su nombre, por lo que deben coincidir en el servidor y en el cliente.
+
+```bash
+sudo groupadd -g 3000 personal_hospital
+sudo useradd -m -u 3001 -G personal_hospital -s /bin/bash medico1
+id medico1
+```
+![Grupo y usuario en el servidor](capturas/nfs/04_usuarios_grupo_servidor.png)
+
+Posteriormente, se crearon los directorios que serán compartidos y se asignaron sus permisos:
+
+```bash
+sudo mkdir -p /srv/nfs/hospital/compartido /srv/nfs/hospital/protocolos
+
+sudo chown root:personal_hospital /srv/nfs/hospital/compartido
+sudo chmod 2770 /srv/nfs/hospital/compartido
+
+sudo chown root:root /srv/nfs/hospital/protocolos
+sudo chmod 755 /srv/nfs/hospital/protocolos
+echo "Protocolo de lavado de manos - Hospital San Juan de Dios de Armenia" | sudo tee /srv/nfs/hospital/protocolos/protocolo_lavado_manos.txt
+
+ls -ld /srv/nfs/hospital/*
+```
+
+- **compartido (2770):** el propietario y el grupo `personal_hospital` pueden leer y escribir; los demás usuarios no tienen acceso. El bit *setgid* (el `2` inicial) hace que los archivos nuevos pertenezcan automáticamente al grupo `personal_hospital`.
+- **protocolos (755):** todos pueden leer, pero solo el administrador del servidor puede modificar su contenido.
+
+![Directorios y permisos](capturas/nfs/05_directorios_permisos.png)
+
+#### 3.21. Configuración de las Exportaciones
+
+Se editó el archivo `/etc/exports` para definir qué directorios se comparten, con qué red y con qué permisos:
+
+```bash
+sudo nano /etc/exports
+```
+Se agregaron las siguientes líneas:
+
+```bash
+/srv/nfs/hospital/compartido  192.168.33.0/24(rw,sync,no_subtree_check,root_squash)
+/srv/nfs/hospital/protocolos  192.168.33.0/24(ro,sync,no_subtree_check,root_squash)
+```
+
+- `rw` / `ro`: lectura y escritura, o solo lectura.
+- `sync`: los cambios se escriben en disco antes de confirmar la operación al cliente, evitando pérdida de información.
+- `root_squash`: el usuario root de un cliente se convierte en `nobody` dentro del servidor, de modo que no puede saltarse los permisos de las carpetas. Se descartó la opción `no_root_squash` de la guía del curso, porque en un hospital cualquier equipo cliente con acceso de administrador tendría control total sobre los archivos compartidos.
+
+![Archivo /etc/exports](capturas/nfs/06_archivo_exports.png)
+
+Se aplicaron las exportaciones, se habilitó el servicio y se verificó su estado:
+
+```bash
+sudo exportfs -ra
+sudo systemctl enable --now nfs-kernel-server
+sudo exportfs -v
+sudo systemctl status nfs-kernel-server
+```
+![Exportaciones y estado del servicio](capturas/nfs/07_exportfs_estado_servicio.png)
+
+#### 3.22. Configuración del Cliente NFS
+
+En la instancia `nfs-cliente` se instaló el paquete `nfs-common`:
+
+```bash
+sudo apt update
+sudo apt install nfs-common -y
+```
+![Instalación de nfs-common](capturas/nfs/08_instalacion_nfs_common_cliente.png)
+
+Se crearon los mismos grupo y usuario del servidor, con los mismos UID/GID, y además un usuario `visitante` (UID 3002) que **no** pertenece al grupo, para comprobar los permisos:
+
+```bash
+sudo groupadd -g 3000 personal_hospital
+sudo useradd -m -u 3001 -G personal_hospital -s /bin/bash medico1
+sudo useradd -m -u 3002 -s /bin/bash visitante
+```
+
+Se consultaron los recursos que publica el servidor:
+
+```bash
+showmount -e 192.168.33.14
+```
+![Recursos exportados vistos desde el cliente](capturas/nfs/09_showmount_cliente.png)
+
+#### 3.23. Montaje de los Recursos Compartidos
+
+Se crearon los puntos de montaje y se montaron ambos recursos:
+
+```bash
+sudo mkdir -p /mnt/hospital/compartido /mnt/hospital/protocolos
+sudo mount -t nfs 192.168.33.14:/srv/nfs/hospital/compartido /mnt/hospital/compartido
+sudo mount -t nfs 192.168.33.14:/srv/nfs/hospital/protocolos /mnt/hospital/protocolos
+df -hT | grep nfs
+```
+![Recursos montados en el cliente](capturas/nfs/10_montaje_df.png)
+
+#### 3.24. Verificación y Pruebas de Permisos
+
+**Prueba 1 – Escritura con un usuario autorizado.** El usuario `medico1`, que pertenece al grupo `personal_hospital`, pudo crear un archivo en la carpeta compartida:
+
+```bash
+sudo -u medico1 bash -c 'echo "Turno de urgencias - lunes" > /mnt/hospital/compartido/turnos_urgencias.txt'
+ls -l /mnt/hospital/compartido
+```
+
+**Prueba 2 – Acceso de un usuario no autorizado.** El usuario `visitante` no pudo listar ni escribir en la carpeta, y el sistema respondió `Permission denied`:
+
+```bash
+sudo -u visitante ls /mnt/hospital/compartido
+sudo -u visitante touch /mnt/hospital/compartido/prueba.txt
+```
+
+**Prueba 3 – root del cliente (root_squash).** Incluso el usuario root del cliente recibió `Permission denied`, porque el servidor lo trató como `nobody`:
+
+```bash
+sudo touch /mnt/hospital/compartido/prueba_root.txt
+```
+![Pruebas de escritura y permisos](capturas/nfs/11_prueba_escritura_permisos.png)
+
+**Prueba 4 – Recurso de solo lectura.** En la carpeta de protocolos se pudo leer el archivo, pero al intentar escribir el sistema respondió `Read-only file system`:
+
+```bash
+cat /mnt/hospital/protocolos/protocolo_lavado_manos.txt
+sudo -u medico1 touch /mnt/hospital/protocolos/nuevo.txt
+```
+![Prueba del recurso de solo lectura](capturas/nfs/12_prueba_solo_lectura.png)
+
+**Prueba 5 – Verificación desde el servidor.** En `nfs-servidor` se comprobó que el archivo creado desde el cliente quedó almacenado con el propietario `medico1` (UID 3001) y el grupo `personal_hospital` (GID 3000). Se utilizó `sudo` porque el usuario administrador `ubuntu` no pertenece al grupo `personal_hospital` y, por los permisos `2770`, no puede acceder a la carpeta; al intentarlo sin `sudo` el sistema respondió `Permission denied`, lo que confirma que la restricción también se aplica en el servidor.
+
+```bash
+sudo ls -ln /srv/nfs/hospital/compartido
+sudo cat /srv/nfs/hospital/compartido/turnos_urgencias.txt
+```
+![Archivo visto desde el servidor](capturas/nfs/13_archivo_visto_en_servidor.png)
+
+#### 3.25. Montaje Permanente
+
+Para que los recursos se monten automáticamente al iniciar el cliente, se agregaron las siguientes líneas al final de `/etc/fstab`:
+
+```bash
+192.168.33.14:/srv/nfs/hospital/compartido  /mnt/hospital/compartido  nfs  defaults,_netdev,nofail  0  0
+192.168.33.14:/srv/nfs/hospital/protocolos  /mnt/hospital/protocolos  nfs  ro,defaults,_netdev,nofail  0  0
+```
+
+La opción `_netdev` indica que se debe esperar a que la red esté disponible, y `nofail` permite que el cliente arranque aunque el servidor no responda. Se reinició el cliente y se verificó que los recursos quedaran montados:
+
+```bash
+sudo systemctl daemon-reload
+sudo reboot
+# después del reinicio:
+df -hT | grep nfs
+```
+![Montaje permanente después del reinicio](capturas/nfs/14_fstab_persistencia.png)
 ---
 
 ## 4. Parámetros Técnicos de los Servicios
@@ -369,6 +564,7 @@ Los servicios implementados utilizan los siguientes parámetros de red:
 | **Aplicación web (Express.js)** | 192.168.13.40 | 3000 (interno), 80 (acceso web) | TCP/HTTP | Servidor web institucional | Sitio de demostración del hospital disponible en `http://hospital.192.168.13.40.sslip.io`. |
 | **MySQL** | 192.168.13.40 | 3306 (interno) | TCP | Base de datos relacional | Base de datos `hospital_db`, desplegada mediante Dokploy y conectada con la aplicación web a través de la red interna de Docker. |
 | **Cloudflare Tunnel** | Acceso mediante túnel temporal | 443 (HTTPS público) | HTTPS | Acceso web seguro temporal | Permite acceder a la aplicación mediante una dirección HTTPS generada por Cloudflare mientras el túnel permanece activo. |
+| **NFS (nfs-kernel-server)** | 192.168.33.14 | 2049 (y 111 rpcbind) | TCP/UDP | Compartición de archivos Linux | Recursos `/srv/nfs/hospital/compartido` (lectura/escritura) y `/srv/nfs/hospital/protocolos` (solo lectura), montados en `/mnt/hospital/` en los clientes. |
 
 ---
 
@@ -381,6 +577,8 @@ Por una parte, Chrony permitió sincronizar el reloj del servidor con fuentes de
 De esta manera, se establecieron las configuraciones necesarias para apoyar la sincronización horaria y la gestión centralizada de impresión dentro de la infraestructura del hospital.
 
 Ahora bien, NIS permitió centralizar la administración de usuarios y grupos mediante una arquitectura cliente-servidor. Se configuró un servidor maestro para el dominio hospital.local y se integró una máquina cliente que pudo consultar los usuarios publicados e iniciar sesión utilizando una cuenta creada en el servidor. También se habilitó la creación automática del directorio personal para los usuarios que iniciaran sesión por primera vez. Gracias a esto se puede administrar las identidades dentro del entorno de red implementado para el hospital.
+
+En cuanto a NFS, se configuró un servidor que comparte dos recursos con los equipos Linux de la red: una carpeta de trabajo con lectura y escritura restringida al grupo `personal_hospital`, y una carpeta de protocolos institucionales de solo lectura. Las pruebas comprobaron que un usuario autorizado puede crear archivos, que un usuario externo al grupo y el usuario root del cliente son rechazados gracias a los permisos y a la opción `root_squash`, y que la carpeta de protocolos no admite escritura. Además, los recursos quedaron montados de forma permanente mediante `/etc/fstab`.
 
 Por otra parte, se implementó **Dokploy** en una máquina virtual Ubuntu con dirección IP `192.168.13.40`, reutilizando la infraestructura de contenedores Docker previamente configurada. Desde su panel de administración se creó el proyecto `hospital-san-juan-de-dios`, dentro del entorno `production`, para organizar el despliegue de la aplicación web y su base de datos.
 

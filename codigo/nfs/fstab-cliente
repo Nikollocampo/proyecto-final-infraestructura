@@ -1,0 +1,9 @@
+# Líneas agregadas al final de /etc/fstab en el cliente NFS
+# Proyecto: Infraestructura TI - Hospital San Juan de Dios de Armenia
+#
+# _netdev : espera a que la red esté disponible antes de montar
+# nofail  : si el servidor no responde, el cliente arranca igual
+#
+
+192.168.33.14:/srv/nfs/hospital/compartido  /mnt/hospital/compartido  nfs  defaults,_netdev,nofail  0  0
+192.168.33.14:/srv/nfs/hospital/protocolos  /mnt/hospital/protocolos  nfs  ro,defaults,_netdev,nofail  0  0
