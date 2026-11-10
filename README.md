@@ -49,6 +49,10 @@ La aplicación se desplegó desde GitHub utilizando Nixpacks y se verificó su f
  
 Permite compartir carpetas desde un servidor Linux central con los demás equipos Linux de la red. Se configuró una carpeta de trabajo con lectura y escritura restringida al grupo `personal_hospital` y una carpeta de protocolos institucionales de solo lectura, montadas automáticamente en los clientes.
 
+### F. Servicio SAMBA
+ 
+Permite compartir carpetas desde un servidor Linux central con los equipos Windows y Mac de la red, usando el protocolo SMB. Se implementó en una máquina virtual Ubuntu 24.04 creada con Multipass, en donde se configuró una carpeta compartida `hospital` de lectura y escritura restringida al grupo `sambausers`, sin acceso de invitados. Se comprobó el acceso desde Windows con un usuario autorizado y otro no autorizado, además se verificó la conexión mediante la ruta `\\192.168.45.225\hospital`.
+
 ## 4. Estructura del Proyecto
 
 El proyecto se encuentra organizado en los siguientes archivos y directorios:
