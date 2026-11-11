@@ -549,6 +549,247 @@ sudo reboot
 df -hT | grep nfs
 ```
 ![Montaje permanente después del reinicio](capturas/nfs/14_fstab_persistencia.png)
+
+
+---
+
+### E. Servicio Samba
+
+**Objetivo:** Implementar y verificar el servicio de compartición de archivos con Samba, que permita a los equipos Windows y Mac del Hospital Departamental Universitario del Quindío San Juan de Dios acceder a una carpeta compartida con control de acceso por usuario y grupo.
+
+#### 3.26. Verificar Multipass
+
+Primero que todo procedemos a verificar si ya tenemos Multipass en nuestro dispositivo, utilizamos el comando `multipass version`y para verificar que hipervisor está usando Multipass para ejecutar las máquinas virtuales utilizamos el comando `multipass get local.driver`. 
+
+```bash
+multipass version
+multipass get local.driver
+```
+
+![Verificación de Multipass](capturas/samba/01_Verificar_Multipass.png)
+
+#### 3.27. Crear la instancia de la MV con Multipass
+
+Después de verificar multipass, procedemos a crear una instancia con la versión de ubuntu `24.04`, su respectivo nombre `samba-hospital`, y características técnicas como 2 cpus, 2GB de memoria RAM y 15GB de disco. Para crear la instancia utilizamos el comando `multipass launch 24.04 --name samba-hospital --cpus 2 --memory 2G --disk 15G`. Luego verificamos que la instancia se encuentre en ejecución y aprovechamos para consultar su dirección IP con el comando `multipass list` que más adelante será util.  
+
+```bash
+multipass launch 24.04 --name samba-hospital --cpus 2 --memory 2G --disk 15G
+multipass list
+multipass info samba-hospital
+```
+
+![Crear instancia](capturas/samba/02_Crear_MV.png)
+
+#### 3.28. Entrar a la terminal de la instancia y verificar el sistema
+
+Luego de crear la instancia, necesitamos ingresar a la terminal de está para empezar con la implementación del servicio Samba, para esto utilizamos el comando `multipass shell samba-hospital`. Luego verificamos el sistema de la instancia con los comandos `lsb_release -a` para ver detalles del sistema de la instancia y `hostname -I` para consultar directamente la IP de la instancia.
+
+```bash
+multipass shell samba-hospital
+lsb_release -a
+hostname -I
+```
+
+![Entrar a la terminal de la instancia](capturas/samba/03_Entrar_a_la_MV_y_Verificar_el_Sistema.png)
+
+#### 3.29. Actualizar paquetes de la instancia
+
+Antes de realizar la instalación de Samba, primero necesitamos actualizar los paquetes con el comando `sudo apt update && sudo apt upgrade -y`.
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+![Actualizar paquetes](capturas/samba/04.1_Actualizar_paquetes.png)
+
+#### 3.30. Instalación de Samba
+
+Ahora sí, procedemos con la instalación de Samba, después de actualizar los paquetes y realizar ciertas verificaciones. Para instalar el servicio utilizamos el comando `sudo apt install samba smbclient -y`.
+
+```bash
+sudo apt install samba smbclient -y
+```
+
+![Instalacion de Samba](capturas/samba/04.2_Instalar_Samba.png)
+
+#### 3.31. Verificar la instalación y estado de Samba
+
+Luego de realizar la instalación del servicio, seguimos con la verificación de lo que se ha instalado, para ello se utilizan varios comandos, primeramente comprobamos la versión de samba instalada con el comando `smbd --version`, luego para verificar el estado del servicio `smbd` utilizamos el comando `sudo systemctl status smbd --no-pager`. Por último verificamos el estado del servicio `nmbd` con un comando similar al anterior `sudo systemctl status nmbd --no-pager`.
+
+```bash
+smbd --version
+sudo systemctl status smbd --no-pager
+`sudo systemctl status nmbd --no-pager`
+```
+
+![Verificar la instalacion y estado de Samba](capturas/samba/04.3_Verificar_instalacion_y_estado_del_servicio_samba.png)
+
+#### 3.32. Crear respaldo de configuración inicial
+
+Para realizar un respaldo de la configuración inicial, vamos a crear una copia del archivo smb.conf en la misma ubicación pero con el nombre `smb.conf.original`, para ello utilizamos el comando `sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.original` y luego para verificar que se ha creado el respaldo correctamente usamos el comando `ls -l /etc/samba/`. 
+
+```bash
+sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.original
+ls -l /etc/samba/
+```
+
+![Crear respaldo de la configuración inicial](capturas/samba/05_Respaldar_Configuracion_Inicial.png)
+
+#### 3.33. Crear grupo y usuarios con acceso a los archivos compartidos
+
+Posteriormente seguimos con la creación del grupo en donde van a ir los usuarios que van a tener acceso a los archivos compartidos, pero también crearemos un usuario externo para realizar pruebas más adelante. Primero creamos el grupo `sambausers` con el comando `sudo groupadd sambausers`. Luego creamos dos usuarios, uno lo agregaremos al grupo creado anteriormente y el otro solamente lo creamos sin agregarlo al grupo `sambausers`. Para crear el primer usuario utilizamos el comando `sudo useradd -M -s /usr/sbin/nologin -G sambausers usuario_hospital` y para crear el segundo usuario es un comando muy similar `sudo useradd -M -s /usr/sbin/nologin usuario_externo`. Por último verificamos ambos usuarios con los comandos `id usuario_hospital` y `id usuario_externo`, en donde se puede comprobar que el usuario `usuario_hospital` pertenece al grupo sambausers mientras que el usuario `usuario_externo` no pertenece a ese grupo. 
+
+```bash
+sudo groupadd sambausers
+sudo useradd -M -s /usr/sbin/nologin -G sambausers usuario_hospital
+sudo useradd -M -s /usr/sbin/nologin usuario_hospital
+id usuario_hospital
+id usuario_externo
+```
+
+![Crear grupo y usuarios con acceso a los archivos compartidos](capturas/samba/06_Crear_grupo_y_usuarios.png)
+
+#### 3.34. Crear la carpeta compartida y asignar permisos 
+
+Luego de tener los usuarios creados, seguimos con la parte de crear la carpeta que se va a compartir entre el servidor y los usuarios, en este caso solo es `usuario_hospital`. Para crear la carpeta compartida utilizamos el comando `sudo mkdir -p /srv/samba/hospital`. Además asignamos permisos `2770` al grupo `sambausers` anteriormente creado con los comandos `sudo chown root:sambausers /srv/samba/hospital` y `sudo chmod 2770 /srv/samba/hospital`. Por último verificamos que los permisos hayan sido asignados correctamente con `ls -ld /srv/samba/hospital`.
+
+```bash
+sudo mkdir -p /srv/samba/hospital
+sudo chown root:sambausers /srv/samba/hospital
+sudo chmod 2770 /srv/samba/hospital
+ls -ld /srv/samba/hospital
+```
+
+![Crear la carpeta compartida y asignar permisos](capturas/samba/07_Crear_carpeta_y_asignar_permisos.png)
+
+#### 3.35. Crear contraseñas a los usuarios registrados en el punto 3.33 
+
+Ahora creamos las contraseñas para cada uno de los usuarios creados con anterioridad. Pata crear la contraseña del usuario `usuario_hospital` usamos el comando `sudo smbpasswd -a usuario_hospital` y para el otro usuario `usuario_externo` usamos el mismo comando solo que cambiamos la última parte y quedaría así `sudo smbpasswd -a usuario_externo`. Por último verificamos los usuarios que se encuentran registrados a través de este comando `sudo pdbedit -L`.
+
+```bash
+sudo smbpasswd -a usuario_hospital
+sudo smbpasswd -a usuario_externo
+sudo pdbedit -L
+```
+
+![Crear contraseñas para los usuarios](capturas/samba/08_Crear_contraseñas.png)
+
+#### 3.36. Configurar el recurso compartido 
+
+Para configurar el recurso compartido, el cual se encuentra en la ruta `/srv/samba/hospital`, debemos de modificar el archivo `smb.conf` con el siguiente comando `sudo tee -a /etc/samba/smb.conf > /dev/null << 'EOF'`. Inicialmente en la modificación se incluye el apartado `[hospital]` y allí dentro se agrega un comentario con la etiqueta `comment`, la ruta con `path`, permisos de lectura y escritura con las etiquetas `browseable` y `writable` respectivamente, no se permite que invitados puedan acceder a el contenido que se encuentre allí usando la etiqueta `guest ok`, los usuarios con acceso son aquellos que se encuentren en el grupo `sambausers`, etc. Luego con el comando `tail -n 14 /etc/samba/smb.conf` verificamos que se hayan agregado las nuevas líneas al final del archivo `smb.conf`.
+
+```bash
+sudo tee -a /etc/samba/smb.conf > /dev/null << 'EOF'
+tail -n 14 /etc/samba/smb.conf
+```
+
+![Configurar el recurso compartido](capturas/samba/09_Configurar_recurso_compartido.png)
+
+#### 3.37. Validar sintaxis del archivo smb.conf 
+
+Para validar la sintaxis del archivo `smb.conf` y evitar romper el servicio más adelante, verificamos el contenido del archivo con el comando `testparm -s`, allí se puede observar el bloque que hemos agregado anteriormente `[hospital]` y algunos de las etiquetas agregadas.
+
+```bash
+testparm -s
+```
+
+![Validar sintaxis del archivo smb.conf](capturas/samba/10.1_Validar_sintaxis_del_servicio.png)
+
+#### 3.38. Reiniciamos los servicios smbd y nmbd y validamos los puertos TCP y UDP
+
+Primero reiniciamos los servicios `smbd` y `nmbd` con el comando `sudo systemctl  restart smbd nmbd`. Luego verificamos  el estado en el que se encuentra el servicio utilizando el comando `sudo systemctl status smbd --no-pager`. En el resultado del comando anterior se puede observar que el servicio se encuentra activo y corriendo. Por último verificamos los puertos utilizados por los protocolos TCP y UDP y para ello utilizamos el comando `sudo ss -tulpn | grep -E 'smbd|nmbd'`, en donde se puede observar que el protocolo TCP usa los puertos `139` y `445` y el protocolo UDP usa los puertos `137` y `138`, lo cual es lo esperado.
+
+```bash
+sudo systemctl  restart smbd nmbd
+sudo systemctl status smbd --no-pager
+sudo ss -tulpn | grep -E 'smbd|nmbd'
+```
+
+![Validar sintaxis del archivo smb.conf](capturas/samba/10.2_Reiniciar_el_servicio_y_validar_puertos.png)
+
+#### 3.39. Prueba local con smbclient utilizando el usuario `usuario_hospital`
+
+Para realizar la prueba directamente en la instancia, utilizamos estos dos comandos `smbclient -L localhost -U usuario_hospital` y `smbclient //localhost/hospital -U usuario_hospital`. El primer comando nos permite ver el recurso compartido, el cual es `hospital` y allí se observa el comentario que hemos puesto anteriormente `Carpeta compartida Hospital San Juan de Dios` y el segundo nos permite ingresar a la carpeta y crear un archivo de prueba, en este caso llamado `prueba_admin`. Cabe recalcar que para ambos comandos se debe ingresar la contraseña del usuario que se esté utilizando.
+
+```bash
+smbclient -L localhost -U usuario_hospital
+smbclient //localhost/hospital -U usuario_hospital
+```
+
+![Prueba usando smbclient con el usuario usuario_hospital](capturas/samba/11.1_Prueba_local_con_smbclient_usuario_hospital.png)
+
+#### 3.40. Prueba local con smbclient utilizando el usuario `usuario_externo`
+
+Después de realizar la prueba con el usuario autorizado, ahora vamos a probar con el usuario que no se encuentra en el grupo creado inicialmente, el cual es `usuario_externo`. Para realizar la prueba usamos el mismo comando anterior solo que cambiando el nombre del usuario `smbclient //localhost/hospital -U usuario_externo`. Después de ingresar la contraseña del usuario nos aparece el siguiente mensaje `tree connect failed: NT_STATUS_ACCESS_DENIED`, lo cual es el resultado esperado porque este usuario no tiene autorización de ingresar al recurso compartido.
+
+```bash
+smbclient //localhost/hospital -U usuario_externo
+```
+
+![Prueba usando smbclient con el usuario usuario_externo](capturas/samba/11.2_Prueba_local_con_smbclient_usuario_externo.png)
+
+#### 3.41. Verificar estado del firewall
+
+Por último verificamos el estado del firewall con el comando `sudo ufw status`. Para este caso el firewall se encuentra inactivo, lo cual indica que no existe ningún tipo de bloqueo, pero el caso contrario sería que se encontrará activo, en esa situación tocaría abrir los puertos correspondientes.
+
+```bash
+sudo ufw status
+```
+
+![Verificar estado del firewall](capturas/samba/11.3_Verificar_firewall.png)
+
+#### 3.42. Verificar la conexión de la red desde una terminal cualquiera de PowerShell en Windows
+
+Para verificar la conexión de la red utilizamos el comando `Test-NetConnection -ComputerName 192.168.45.225 -Port 445`, en donde se espera que el resultado de la variable `TcpTestSucceeded` sea `True`, y este se puede observar al final.
+
+```bash
+Test-NetConnection -ComputerName 192.168.45.225 -Port 445
+```
+
+![Verificar la conexión de la red](capturas/samba/12_Verificar_la_conexión_de_la_red.png)
+
+#### 3.43. Ingresar al servicio desde Windows
+
+Una forma de ingresar al servicio desde la máquina anfitrión, en este caso el computador con Windows, primero hacemos la combinación de teclas `Win + R` e ingresamos el siguiente texto `\\192.168.45.225\hospital`, allí se puede observar la dirección de la instancia, la cual consultamos en los primeros pasos, ahora es momento de usarla. Lueg aparece una ventana emergente en donde debemos ingresar las credenciales del usuario autenticado, con su nombre de usuario `usuario_hospital` y su respectiva contraseña. Por último se puede ver que el ingreso ha sido exitoso, en donde se puede observar la carpeta compartida que se ha creado anteriormente.
+
+![Ingresar al servicio desde Windows](capturas/samba/13.1_Ingresar_al_servicio_desde_Windows.png)
+
+![Ingresar credenciales en el servicio](capturas/samba/13.2_Ingresar_credenciales_definidas_en_el_servicio.png)
+
+![Verificacion de carpeta compartida](capturas/samba/13.3_Verificacion_de_carpeta_compartida.png)
+
+#### 3.44. Crear un archivo de prueba desde Windows
+
+Después de haber ingresado a la carpeta compartida, crearemos un archivo de prueba dentro del directorio `prueba_admin` llamado `prueba_windows.txt` y con el contenido `Probando escritura desde Windows`. También crearemos un directorio de prueba llamado `documentos`, el cual se encuentra dentro del recurso compartido llamado `hospital`.
+
+![Crear un archivo de prueba desde Windows](capturas/samba/14.1_Crear_archivo_desde_windows.png)
+
+![Archivo txt desde windows](capturas/samba/14.2_Archivo_txt_desde_windows.png)
+
+![Crear carpeta desde windows](capturas/samba/14.3_Crear_carpeta_desde_windows.png)
+
+#### 3.45. Verificar los archivos creados desde la instancia
+
+Después de haber creado el archivo txt `prueba_admin` y el directorio `documentos`, necesitamos verificar que en la instancia se puedan ver estos archivos, entonces volvemos a la terminal de la máquina virtual y utilizamos estos dos comandos `sudo ls -l /srv/samba/hospital` y `sudo smbstatus`, en donde el primero permite observar que allí se encuentran los archivos creados, mientras que el segundo nos permite ver la conexión activa desde la máquina anfitrión.
+
+```bash
+sudo ls -l /srv/samba/hospital
+sudo smbstatus
+```
+
+![Verificar los archivos creados en Windows desde la instancia](capturas/samba/15_Verificar_en_la_instancia_lo_que_se_creo_en_windows.png)
+
+#### 3.46. Prueba con usuario no autorizado desde Windows
+
+Por último realizaremos una prueba con el usuario no autenicado que hemos creado inicialmente `usuario_externo`. Al igual que la prueba con el usuario autenticado, primero hacemos la combinación de teclas `Win + R` e ingresamos `\\192.168.45.225\hospital`, después nos aparece la ventana emergente en donde debemos ingresar las credenciales del usuario, con su nombre de usuario `usuario_externo` con su respectiva contraseña. Al intentar ingresar nos aparece el mensaje `Access is denied`. Esto brinda confianza a los usuarios del servicio, debido a que no se permite el acceso a los archivos del hospital a cualquier persona, sino exclusivamente a la autorizada. 
+
+![Ingresar al servicio desde Windows](capturas/samba/13.1_Ingresar_al_servicio_desde_Windows.png)
+
+![Prueba con usuario no autorizado desde Windows](capturas/samba/16.1_Prueba_negativa_en_windows.png)
+
+![Acceso denegado](capturas/samba/16.2_Acceso_denegado.png)
+
+
 ---
 
 ## 4. Parámetros Técnicos de los Servicios
@@ -565,6 +806,7 @@ Los servicios implementados utilizan los siguientes parámetros de red:
 | **MySQL** | 192.168.13.40 | 3306 (interno) | TCP | Base de datos relacional | Base de datos `hospital_db`, desplegada mediante Dokploy y conectada con la aplicación web a través de la red interna de Docker. |
 | **Cloudflare Tunnel** | Acceso mediante túnel temporal | 443 (HTTPS público) | HTTPS | Acceso web seguro temporal | Permite acceder a la aplicación mediante una dirección HTTPS generada por Cloudflare mientras el túnel permanece activo. |
 | **NFS (nfs-kernel-server)** | 192.168.33.14 | 2049 (y 111 rpcbind) | TCP/UDP | Compartición de archivos Linux | Recursos `/srv/nfs/hospital/compartido` (lectura/escritura) y `/srv/nfs/hospital/protocolos` (solo lectura), montados en `/mnt/hospital/` en los clientes. |
+| **Samba (smbd / nmbd)** | 192.168.45.225 | 445 y 139 (TCP); 137 y 138 (UDP) | TCP/UDP | Compartición de archivos Windows/Mac | Recurso `hospital` (`/srv/samba/hospital`) de lectura y escritura restringido al grupo `sambausers`, accesible desde Windows mediante `\\192.168.45.225\hospital`. El puerto 445 corresponde a SMB y los puertos 139, 137 y 138 a NetBIOS. |
 
 ---
 
@@ -591,3 +833,9 @@ También se creó y desplegó una base de datos **MySQL 8.4.13**, identificada c
 Finalmente, se implementó la ruta `/db-test`, desde la cual se ejecutó una consulta SQL a MySQL. La prueba devolvió el mensaje `conexion exitosa`, el nombre de la base de datos `hospital_db` y la versión del servidor `8.4.13`, comprobando que la aplicación Express.js podía comunicarse correctamente con el servicio de base de datos.
 
 Con esta implementación se consiguió disponer de una aplicación web desplegada en contenedores, administrada mediante Dokploy y conectada a una base de datos MySQL. Esto complementa los servicios de infraestructura desarrollados por el equipo y permite demostrar un entorno tecnológico integrado para el proyecto académico del Hospital San Juan de Dios de Armenia.
+
+El servicio Samba permitió compartir archivos con los equipos Windows y Mac de la red mediante un servidor Ubuntu `24.04` creado con Multipass, con dirección IP `192.168.45.225`. Se instaló Samba `4.19.5` como servidor independiente y se configuró el recurso compartido hospital, con la carpeta `/srv/samba/hospital`, lectura y escritura restringidas al grupo sambausers y sin acceso de invitados.
+
+Las pruebas realizadas comprobaron que los servicios smbd y nmbd quedaron activos, que los puertos `445, 139, 137 y 138` se encontraban en escucha y que la configuración fue valida con testparm. Desde un cliente de Windows, el usuario autorizado pudo acceder a la carpeta compartida, crear archivos y carpetas, y la sesión fue verificada en el servidor con `smbstatus` mediante el protocolo `SMB3` con firma de mensajes. Por el contrario, el intento de ingreso del usuario externo fue rechazado, tanto desde el servidor como desde Windows.
+
+De esta manera, se logro la implementación de un servicio de archivos centralizado, con acceso controlado por usuario y grupo, que complementa los servicios de infraestructura desarrollados por el equipo para el Hospital San Juan de Dios.
