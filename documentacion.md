@@ -2,8 +2,13 @@
 
 **Proyecto:** Infraestructura de TI - Hospital San Juan de Dios de Armenia  
 **Servidor:** Ubuntu Server 24.04 LTS (Máquina Virtual)  
-
-
+**Integrantes:** 
+- Isabela Ospina Baquero
+- Michael Hernán Acevedo Porras
+- Nikoll Sofía Ocampo Gómez
+- Santiago León Echeverri
+- Miguel Ángel Betancur Ramos
+  
 ---
 
 ## 1. Contexto de la Implementación
